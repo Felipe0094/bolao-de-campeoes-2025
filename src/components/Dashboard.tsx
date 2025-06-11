@@ -35,8 +35,7 @@ const Dashboard = () => {
       
       <div className="container mx-auto px-4 py-8">
         <div className="mb-8">
-          <h2 className="text-3xl font-bold text-gray-800 mb-2">Dashboard</h2>
-          <p className="text-gray-600">Bem-vindo ao seu painel do bolão!</p>
+          <p className="text-2xl font-bold text-gray-800">Painel</p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
@@ -164,7 +163,6 @@ const Dashboard = () => {
         </div>
 
         <div className="mb-8">
-          <h2 className="text-2xl font-bold text-gray-800 mb-4">Ranking</h2>
           <RankingTable players={ranking || []} />
         </div>
 
