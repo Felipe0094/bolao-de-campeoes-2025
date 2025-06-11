@@ -10,6 +10,7 @@ export interface RankingPlayer {
   correctResults: number;
   position: number;
   isCurrentUser?: boolean;
+  avatar_url?: string;
 }
 
 export const useRanking = () => {
@@ -23,7 +24,7 @@ export const useRanking = () => {
       // Busca todos os perfis de usuários
       const { data: profiles, error: profilesError } = await supabase
         .from('profiles')
-        .select('id, name');
+        .select('id, name, avatar_url');
 
       if (profilesError) {
         console.error('Error fetching profiles:', profilesError);
@@ -78,6 +79,7 @@ export const useRanking = () => {
         return {
           id: profile.id,
           name: profile.name,
+          avatar_url: profile.avatar_url,
           ...stats
         };
       });
@@ -88,6 +90,7 @@ export const useRanking = () => {
         .map((player, index) => ({
           id: player.id,
           name: player.name,
+          avatar_url: player.avatar_url,
           points: player.totalPoints,
           exactPredictions: player.exactPredictions,
           correctResults: player.correctResults,

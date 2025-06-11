@@ -3,7 +3,7 @@ const urlsToCache = [
   '/',
   '/index.html',
   '/manifest.json',
-  '/bolao-logo.png',
+  '/bolao-feph.jpg',
   '/placeholder.svg'
 ];
 
