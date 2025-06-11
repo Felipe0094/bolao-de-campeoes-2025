@@ -202,15 +202,24 @@ const ImageCropper = ({ isOpen, onClose, onCropComplete, imageFile }: ImageCropp
                 <ZoomIn className="h-4 w-4 text-gray-500" />
               </div>
 
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setRotation((r) => (r + 90) % 360)}
-                className="w-full"
-              >
-                <RotateCcw className="h-4 w-4 mr-2" />
-                Girar 90°
-              </Button>
+              <div className="flex flex-col gap-2 sm:flex-row sm:justify-between">
+                <Button
+                  onClick={handleCropComplete}
+                  disabled={!completedCrop}
+                  className="w-full sm:w-auto"
+                >
+                  Salvar Foto
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setRotation((r) => (r + 90) % 360)}
+                  className="w-full sm:w-auto"
+                >
+                  <RotateCcw className="h-4 w-4 mr-2" />
+                  Girar 90°
+                </Button>
+              </div>
             </div>
           </div>
 
@@ -237,12 +246,9 @@ const ImageCropper = ({ isOpen, onClose, onCropComplete, imageFile }: ImageCropp
         <canvas ref={canvasRef} className="hidden" />
         <canvas ref={previewCanvasRef} className="hidden" />
 
-        <DialogFooter>
-          <Button variant="outline" onClick={onClose}>
+        <DialogFooter className="sm:hidden">
+          <Button variant="outline" onClick={onClose} className="w-full">
             Cancelar
-          </Button>
-          <Button onClick={handleCropComplete} disabled={!completedCrop}>
-            Salvar Foto
           </Button>
         </DialogFooter>
       </DialogContent>
