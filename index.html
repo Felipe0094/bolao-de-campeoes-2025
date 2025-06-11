@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>Bolão de Campeões 2025</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="/bolao-logo.ico" />
+    <link rel="shortcut icon" type="image/x-icon" href="/bolao-logo.ico" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/bolao-logo.ico" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/bolao-logo.ico" />
+    
+    <meta name="description" content="Bolão de Campeões 2025 - Acompanhe os jogos e faça suas apostas" />
+    <meta name="author" content="Bolão de Campeões" />
+    <meta name="theme-color" content="#000000" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+    <meta name="apple-mobile-web-app-title" content="Bolão 2025" />
+
+    <link rel="manifest" href="/manifest.json" />
+    <link rel="apple-touch-icon" href="/bolao-logo.png" />
+
+    <meta property="og:title" content="Bolão de Campeões 2025" />
+    <meta property="og:description" content="Bolão de Campeões 2025 - Acompanhe os jogos e faça suas apostas" />
+    <meta property="og:type" content="website" />
+    <meta property="og:image" content="/bolao-logo.png" />
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Bolão de Campeões 2025" />
+    <meta name="twitter:description" content="Bolão de Campeões 2025 - Acompanhe os jogos e faça suas apostas" />
+    <meta name="twitter:image" content="/bolao-logo.png" />
+
+    <script>
+      // Registra o Service Worker
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js')
+            .then(registration => {
+              console.log('Service Worker registrado com sucesso:', registration.scope);
+              
+              // Solicita permissão para notificações
+              if ('Notification' in window) {
+                Notification.requestPermission();
+              }
+            })
+            .catch(error => {
+              console.log('Falha ao registrar Service Worker:', error);
+            });
+        });
+      }
+
+      // Detecta se o app está instalado
+      let deferredPrompt;
+      window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        deferredPrompt = e;
+        // Aqui você pode mostrar um botão ou banner para instalar o app
+        console.log('App pode ser instalado!');
+      });
+    </script>
+  </head>
+
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
