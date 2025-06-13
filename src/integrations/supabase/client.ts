@@ -20,13 +20,7 @@ export const supabase = createClient<Database>(supabaseUrl, supabaseKey, {
         try {
           const itemStr = localStorage.getItem(key);
           if (!itemStr) return null;
-          const item = JSON.parse(itemStr);
-          const now = new Date();
-          if (now.getTime() > item.expiresAt) {
-            localStorage.removeItem(key);
-            return null;
-          }
-          return item.value;
+          return JSON.parse(itemStr);
         } catch (error) {
           console.error('Error reading from localStorage:', error);
           return null;
@@ -34,11 +28,7 @@ export const supabase = createClient<Database>(supabaseUrl, supabaseKey, {
       },
       setItem: (key, value) => {
         try {
-          const item = {
-            value,
-            expiresAt: new Date().getTime() + (30 * 24 * 60 * 60 * 1000), // 30 dias
-          };
-          localStorage.setItem(key, JSON.stringify(item));
+          localStorage.setItem(key, JSON.stringify(value));
         } catch (error) {
           console.error('Error writing to localStorage:', error);
         }
