@@ -22,7 +22,7 @@ const MatchResult = ({ match, userPrediction }: MatchResultProps) => {
     if (points === null) return null;
     if (points === 5) return "Placar exato! +5 pontos";
     if (points === 3) return "Vencedor e placar parcial! +3 pontos";
-    if (points === 1) return "Resultado correto! +1 ponto";
+    if (points === 2) return "Resultado correto! +2 pontos";
     return "Palpite incorreto";
   };
 
@@ -84,7 +84,7 @@ const MatchResult = ({ match, userPrediction }: MatchResultProps) => {
               <div className={`text-sm font-medium ${
                 userPrediction.points === 5 ? "text-green-600" :
                 userPrediction.points === 3 ? "text-blue-600" :
-                userPrediction.points === 1 ? "text-yellow-600" :
+                userPrediction.points === 2 ? "text-yellow-600" :
                 "text-red-600"
               }`}>
                 {getPointsText(userPrediction.points)}

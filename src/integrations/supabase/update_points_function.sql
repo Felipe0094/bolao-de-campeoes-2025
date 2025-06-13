@@ -14,16 +14,16 @@ BEGIN
   -- 3 pontos para acertar o vencedor e pelo menos 1 placar
   IF (p_home_score > p_away_score AND p_predicted_home_score > p_predicted_away_score AND 
       (p_home_score = p_predicted_home_score OR p_away_score = p_predicted_away_score)) OR
-     (p_home_score < p_away_score AND p_predicted_home_score < p_predicted_away_score AND 
+     (p_home_score < p_away_score AND p_predicted_away_score < p_predicted_away_score AND 
       (p_home_score = p_predicted_home_score OR p_away_score = p_predicted_away_score)) THEN
     RETURN 3;
   END IF;
 
-  -- 1 ponto para acertar apenas o resultado (vitória/empate/derrota)
+  -- 2 pontos para acertar apenas o resultado (vitória/empate/derrota)
   IF (p_home_score > p_away_score AND p_predicted_home_score > p_predicted_away_score) OR
      (p_home_score < p_away_score AND p_predicted_home_score < p_predicted_away_score) OR
      (p_home_score = p_away_score AND p_predicted_home_score = p_predicted_away_score) THEN
-    RETURN 1;
+    RETURN 2;
   END IF;
 
   -- 0 pontos para palpite incorreto

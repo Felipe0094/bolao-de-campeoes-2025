@@ -47,7 +47,7 @@ const RankingTable = ({ players }: RankingTableProps) => {
             </p>
             <p className="flex items-center gap-2">
               <Award className="h-4 w-4 text-yellow-600" />
-              <span>1 ponto: Resultado correto</span>
+              <span>2 pontos: Resultado correto</span>
             </p>
           </div>
         </CardHeader>
