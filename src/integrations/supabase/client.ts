@@ -8,4 +8,48 @@ const SUPABASE_PUBLISHABLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiO
 // Import the supabase client like this:
 // import { supabase } from "@/integrations/supabase/client";
 
-export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
+  auth: {
+    persistSession: true,
+    storageKey: 'bolao-auth-token',
+    autoRefreshToken: true,
+    detectSessionInUrl: true,
+    flowType: 'pkce',
+    storage: {
+      getItem: (key) => {
+        try {
+          const itemStr = localStorage.getItem(key);
+          if (!itemStr) return null;
+          const item = JSON.parse(itemStr);
+          const now = new Date();
+          if (now.getTime() > item.expiresAt) {
+            localStorage.removeItem(key);
+            return null;
+          }
+          return item.value;
+        } catch (error) {
+          console.error('Error reading from localStorage:', error);
+          return null;
+        }
+      },
+      setItem: (key, value) => {
+        try {
+          const item = {
+            value,
+            expiresAt: new Date().getTime() + (30 * 24 * 60 * 60 * 1000), // 30 dias
+          };
+          localStorage.setItem(key, JSON.stringify(item));
+        } catch (error) {
+          console.error('Error writing to localStorage:', error);
+        }
+      },
+      removeItem: (key) => {
+        try {
+          localStorage.removeItem(key);
+        } catch (error) {
+          console.error('Error removing from localStorage:', error);
+        }
+      },
+    },
+  },
+});

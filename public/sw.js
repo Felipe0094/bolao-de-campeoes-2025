@@ -1,10 +1,11 @@
-const CACHE_NAME = 'bolao-campeoes-2025-v1';
+const CACHE_NAME = 'bolao-cache-v1';
+
+// Lista de recursos para cachear
 const urlsToCache = [
   '/',
   '/index.html',
   '/manifest.json',
-  '/bolao-feph.jpg',
-  '/placeholder.svg'
+  '/favicon.ico'
 ];
 
 // Instalação do Service Worker
@@ -12,20 +13,18 @@ self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then((cache) => {
-        console.log('Cache aberto');
         return cache.addAll(urlsToCache);
       })
   );
 });
 
-// Ativação do Service Worker
+// Limpeza de caches antigos
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((cacheNames) => {
       return Promise.all(
         cacheNames.map((cacheName) => {
           if (cacheName !== CACHE_NAME) {
-            console.log('Cache antigo removido:', cacheName);
             return caches.delete(cacheName);
           }
         })
@@ -43,30 +42,50 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  event.respondWith(
-    fetch(event.request)
-      .then((response) => {
-        // Se a resposta for bem sucedida, atualiza o cache
-        if (response.status === 200) {
-          const responseClone = response.clone();
-          caches.open(CACHE_NAME)
-            .then((cache) => {
-              cache.put(event.request, responseClone);
-            });
-        }
-        return response;
-      })
-      .catch(() => {
-        // Se falhar, tenta buscar do cache
-        return caches.match(event.request)
-          .then((response) => {
-            if (response) {
-              return response;
-            }
-            // Se não encontrar no cache, retorna uma página offline
-            if (event.request.mode === 'navigate') {
+  // Para requisições de navegação (HTML), usar Network First
+  if (event.request.mode === 'navigate') {
+    event.respondWith(
+      fetch(event.request)
+        .then((response) => {
+          if (response.status === 200) {
+            const responseClone = response.clone();
+            caches.open(CACHE_NAME)
+              .then((cache) => {
+                cache.put(event.request, responseClone);
+              });
+          }
+          return response;
+        })
+        .catch(() => {
+          return caches.match(event.request)
+            .then((response) => {
+              if (response) {
+                return response;
+              }
               return caches.match('/');
+            });
+        })
+    );
+    return;
+  }
+
+  // Para outros recursos, usar Cache First
+  event.respondWith(
+    caches.match(event.request)
+      .then((response) => {
+        if (response) {
+          return response;
+        }
+        return fetch(event.request)
+          .then((response) => {
+            if (response.status === 200) {
+              const responseClone = response.clone();
+              caches.open(CACHE_NAME)
+                .then((cache) => {
+                  cache.put(event.request, responseClone);
+                });
             }
+            return response;
           });
       })
   );
