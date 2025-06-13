@@ -198,7 +198,7 @@ const Dashboard = () => {
             </Link>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {upcomingMatches.map(match => (
+            {upcomingMatches.slice(0, 3).map(match => (
               <MatchCard key={match.id} match={match} />
             ))}
           </div>
