@@ -1,9 +1,9 @@
-
 import { Match } from "@/hooks/useMatches";
 import TeamLogo from "./TeamLogo";
 import { canMakePrediction } from "@/utils/matchUtils";
 import { Badge } from "@/components/ui/badge";
 import { Calendar, Clock } from "lucide-react";
+import { formatDate } from "@/utils/dateUtils";
 
 interface MatchPredictionDisplayProps {
   match: Match;
@@ -16,13 +16,6 @@ interface MatchPredictionDisplayProps {
 const MatchPredictionDisplay = ({ match, userPrediction }: MatchPredictionDisplayProps) => {
   const hasUserPrediction = userPrediction !== undefined;
   const timeExpired = !canMakePrediction(match.match_date, match.match_time);
-
-  const formatDate = (dateStr: string) => {
-    const date = new Date(dateStr);
-    const weekdays = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
-    const weekday = weekdays[date.getDay()];
-    return `${weekday}, ${date.toLocaleDateString('pt-BR')}`;
-  };
 
   return (
     <div className="space-y-6">

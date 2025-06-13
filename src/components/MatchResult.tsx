@@ -3,6 +3,7 @@ import { Match } from "@/hooks/useMatches";
 import TeamLogo from "./TeamLogo";
 import { Badge } from "@/components/ui/badge";
 import { Prediction } from "@/hooks/usePredictions";
+import { formatDate } from "@/utils/dateUtils";
 
 interface MatchResultProps {
   match: Match;
@@ -11,12 +12,6 @@ interface MatchResultProps {
 
 const MatchResult = ({ match, userPrediction }: MatchResultProps) => {
   const hasUserPrediction = userPrediction !== undefined;
-  const formatDate = (dateStr: string) => {
-    const date = new Date(dateStr);
-    const weekdays = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
-    const weekday = weekdays[date.getDay()];
-    return `${weekday}, ${date.toLocaleDateString('pt-BR')}`;
-  };
 
   const getPointsText = (points: number | null) => {
     if (points === null) return null;

@@ -12,6 +12,7 @@ import TeamLogo from "./TeamLogo";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import Navbar from "./Navbar";
+import { formatDate } from "@/utils/dateUtils";
 
 const Dashboard = () => {
   const { user, signOut } = useAuth();
@@ -19,9 +20,22 @@ const Dashboard = () => {
   const { data: matches, isLoading: matchesLoading } = useMatches();
   const { data: ranking, isLoading: rankingLoading } = useRanking();
 
-  const upcomingMatches = matches?.filter(match => match.status === 'upcoming').slice(0, 3) || [];
+  const upcomingMatches = matches?.filter(match => match.status === 'upcoming') || [];
   const currentUser = ranking?.find(player => player.isCurrentUser);
-  const nextMatch = upcomingMatches[0];
+
+  // Agrupar jogos por dia
+  const matchesByDay = upcomingMatches.reduce((acc, match) => {
+    const date = match.match_date;
+    if (!acc[date]) {
+      acc[date] = [];
+    }
+    acc[date].push(match);
+    return acc;
+  }, {} as Record<string, typeof upcomingMatches>);
+
+  // Pegar o primeiro dia com jogos
+  const firstMatchDay = Object.keys(matchesByDay)[0];
+  const nextDayMatches = firstMatchDay ? matchesByDay[firstMatchDay] : [];
 
   // Função para obter URL da imagem do Supabase Storage
   const getAssetUrl = (path: string) => {
@@ -123,34 +137,37 @@ const Dashboard = () => {
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Próximo Jogo</CardTitle>
+              <CardTitle className="text-sm font-medium">Próximos Jogos</CardTitle>
               <Calendar className="h-4 w-4 text-blue-500" />
             </CardHeader>
             <CardContent>
-              {nextMatch ? (
-                <div className="space-y-3">
-                  <div className="flex items-center justify-center gap-3">
-                    <div className="flex flex-col items-center gap-1">
-                      <TeamLogo 
-                        logoUrl={nextMatch.home_team.logo_url} 
-                        teamName={nextMatch.home_team.name}
-                        size="sm"
-                      />
-                      <span className="text-xs text-center font-medium">{nextMatch.home_team.name}</span>
-                    </div>
-                    <span className="text-lg font-bold text-gray-400">VS</span>
-                    <div className="flex flex-col items-center gap-1">
-                      <TeamLogo 
-                        logoUrl={nextMatch.away_team.logo_url} 
-                        teamName={nextMatch.away_team.name}
-                        size="sm"
-                      />
-                      <span className="text-xs text-center font-medium">{nextMatch.away_team.name}</span>
-                    </div>
+              {nextDayMatches.length > 0 ? (
+                <div className="space-y-4">
+                  <div className="text-sm font-medium text-blue-600">
+                    {formatDate(firstMatchDay)}
                   </div>
-                  <p className="text-xs text-muted-foreground text-center">
-                    {nextMatch.match_date} às {nextMatch.match_time}
-                  </p>
+                  {nextDayMatches.map(match => (
+                    <div key={match.id} className="flex items-center justify-center gap-3">
+                      <div className="flex flex-col items-center gap-1">
+                        <TeamLogo 
+                          logoUrl={match.home_team.logo_url} 
+                          teamName={match.home_team.name}
+                          size="sm"
+                        />
+                        <span className="text-xs text-center font-medium">{match.home_team.name}</span>
+                      </div>
+                      <span className="text-lg font-bold text-gray-400">VS</span>
+                      <div className="flex flex-col items-center gap-1">
+                        <TeamLogo 
+                          logoUrl={match.away_team.logo_url} 
+                          teamName={match.away_team.name}
+                          size="sm"
+                        />
+                        <span className="text-xs text-center font-medium">{match.away_team.name}</span>
+                      </div>
+                      <span className="text-xs text-gray-500 ml-2">{match.match_time}</span>
+                    </div>
+                  ))}
                 </div>
               ) : (
                 <div>

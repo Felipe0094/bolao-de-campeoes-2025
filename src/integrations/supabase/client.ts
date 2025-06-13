@@ -2,13 +2,13 @@
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from './types';
 
-const SUPABASE_URL = "https://sqlxinffbahbfoydmksy.supabase.co";
-const SUPABASE_PUBLISHABLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNxbHhpbmZmYmFoYmZveWRta3N5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkyOTUyNTIsImV4cCI6MjA2NDg3MTI1Mn0.ZVVRsWW1T3WTPmHpEraICsQX8GZMxlEVn1yBXf7DPq0";
+const supabaseUrl = 'https://sqlxinffbahbfoydmksy.supabase.co';
+const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNxbHhpbmZmYmFoYmZveWRta3N5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkyOTUyNTIsImV4cCI6MjA2NDg3MTI1Mn0.ZVVRsWW1T3WTPmHpEraICsQX8GZMxlEVn1yBXf7DPq0';
 
 // Import the supabase client like this:
 // import { supabase } from "@/integrations/supabase/client";
 
-export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
+export const supabase = createClient<Database>(supabaseUrl, supabaseKey, {
   auth: {
     persistSession: true,
     storageKey: 'bolao-auth-token',

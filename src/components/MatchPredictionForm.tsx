@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,6 +6,7 @@ import { useSubmitPrediction } from "@/hooks/usePredictions";
 import TeamLogo from "./TeamLogo";
 import { Badge } from "@/components/ui/badge";
 import { Calendar, Clock } from "lucide-react";
+import { formatDate } from "@/utils/dateUtils";
 
 interface MatchPredictionFormProps {
   match: Match;
@@ -30,13 +30,6 @@ const MatchPredictionForm = ({ match, userPrediction }: MatchPredictionFormProps
       setAwayScore(userPrediction.away_score.toString());
     }
   }, [userPrediction]);
-
-  const formatDate = (dateStr: string) => {
-    const date = new Date(dateStr);
-    const weekdays = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
-    const weekday = weekdays[date.getDay()];
-    return `${weekday}, ${date.toLocaleDateString('pt-BR')}`;
-  };
 
   const handleSubmitPrediction = () => {
     if (homeScore !== "" && awayScore !== "") {

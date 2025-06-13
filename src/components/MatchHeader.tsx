@@ -2,58 +2,50 @@ import { Badge } from "@/components/ui/badge";
 import { Clock, Calendar } from "lucide-react";
 import { Match } from "@/hooks/useMatches";
 import TeamLogo from "./TeamLogo";
+import { formatDate } from "@/utils/dateUtils";
 
 interface MatchHeaderProps {
-  match: Match;
+  match: {
+    match_date: string;
+    match_time: string;
+    home_team: {
+      name: string;
+      logo_url: string;
+    };
+    away_team: {
+      name: string;
+      logo_url: string;
+    };
+  };
 }
 
 const MatchHeader = ({ match }: MatchHeaderProps) => {
-  const formatDate = (dateStr: string) => {
-    const date = new Date(dateStr);
-    return date.toLocaleDateString('pt-BR');
-  };
-
   return (
-    <div className="space-y-3">
-      {/* Informações do jogo */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2 text-sm text-gray-600">
-            <Calendar className="h-4 w-4" />
-            <span>{formatDate(match.match_date)}</span>
-          </div>
-          <div className="flex items-center gap-2 text-sm text-gray-600">
-            <Clock className="h-4 w-4" />
-            <span>{match.match_time}</span>
-          </div>
-          <Badge variant="outline" className="text-xs">
-            Grupo {match.group.name}
-          </Badge>
-        </div>
-        <Badge variant={
-          match.status === "upcoming" ? "secondary" :
-          match.status === "live" ? "destructive" :
-          "default"
-        }>
-          {match.status === "upcoming" ? "Agendado" :
-           match.status === "live" ? "Ao Vivo" :
-           "Finalizado"}
-        </Badge>
+    <div className="flex flex-col items-center gap-2 p-4 bg-white rounded-lg shadow-sm">
+      <div className="text-sm font-medium text-blue-600">
+        {formatDate(match.match_date)}
       </div>
-
-      {/* Confronto */}
       <div className="flex items-center justify-center gap-4">
-        <TeamLogo 
-          logoUrl={match.home_team.logo_url} 
-          teamName={match.home_team.name}
-          size="md"
-        />
-        <span className="text-xl font-bold text-gray-400">VS</span>
-        <TeamLogo 
-          logoUrl={match.away_team.logo_url} 
-          teamName={match.away_team.name}
-          size="md"
-        />
+        <div className="flex flex-col items-center gap-2">
+          <img
+            src={match.home_team.logo_url}
+            alt={match.home_team.name}
+            className="w-16 h-16 object-contain"
+          />
+          <span className="text-sm font-medium text-center">{match.home_team.name}</span>
+        </div>
+        <div className="flex flex-col items-center">
+          <span className="text-2xl font-bold">VS</span>
+          <span className="text-sm text-gray-500 mt-1">{match.match_time}</span>
+        </div>
+        <div className="flex flex-col items-center gap-2">
+          <img
+            src={match.away_team.logo_url}
+            alt={match.away_team.name}
+            className="w-16 h-16 object-contain"
+          />
+          <span className="text-sm font-medium text-center">{match.away_team.name}</span>
+        </div>
       </div>
     </div>
   );

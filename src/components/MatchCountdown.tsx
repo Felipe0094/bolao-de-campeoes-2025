@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Clock, AlertTriangle } from "lucide-react";
 
@@ -13,32 +12,39 @@ const MatchCountdown = ({ matchDate, matchTime }: MatchCountdownProps) => {
 
   useEffect(() => {
     const calculateTimeLeft = () => {
-      // Combinar data e hora do jogo
-      const matchDateTime = new Date(`${matchDate} ${matchTime}`);
-      
-      // Subtrair 1 hora (limite para palpites)
-      const cutoffTime = new Date(matchDateTime.getTime() - (60 * 60 * 1000));
-      
-      const now = new Date();
-      const difference = cutoffTime.getTime() - now.getTime();
+      try {
+        // Criar a data com o horário no fuso horário local
+        const [year, month, day] = matchDate.split('-').map(Number);
+        const [matchHours, matchMinutes] = matchTime.split(':').map(Number);
+        
+        const matchDateTime = new Date(year, month - 1, day, matchHours, matchMinutes, 0, 0);
+        const cutoffTime = new Date(matchDateTime.getTime() - (60 * 60 * 1000)); // 1 hora antes
+        const now = new Date();
+        
+        const difference = Math.max(0, cutoffTime.getTime() - now.getTime());
 
-      if (difference <= 0) {
+        if (difference <= 0) {
+          setIsExpired(true);
+          setTimeLeft("Tempo esgotado");
+          return;
+        }
+
+        const days = Math.floor(difference / (1000 * 60 * 60 * 24));
+        const remainingHours = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const remainingMinutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((difference % (1000 * 60)) / 1000);
+
+        if (days > 0) {
+          setTimeLeft(`${days}d ${remainingHours}h ${remainingMinutes}m`);
+        } else if (remainingHours > 0) {
+          setTimeLeft(`${remainingHours}h ${remainingMinutes}m ${seconds}s`);
+        } else {
+          setTimeLeft(`${remainingMinutes}m ${seconds}s`);
+        }
+      } catch (error) {
+        console.error('Erro ao calcular tempo restante:', error);
         setIsExpired(true);
-        setTimeLeft("Tempo esgotado");
-        return;
-      }
-
-      const days = Math.floor(difference / (1000 * 60 * 60 * 24));
-      const hours = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-      const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
-      const seconds = Math.floor((difference % (1000 * 60)) / 1000);
-
-      if (days > 0) {
-        setTimeLeft(`${days}d ${hours}h ${minutes}m`);
-      } else if (hours > 0) {
-        setTimeLeft(`${hours}h ${minutes}m ${seconds}s`);
-      } else {
-        setTimeLeft(`${minutes}m ${seconds}s`);
+        setTimeLeft("Erro ao calcular tempo");
       }
     };
 
@@ -49,21 +55,18 @@ const MatchCountdown = ({ matchDate, matchTime }: MatchCountdownProps) => {
   }, [matchDate, matchTime]);
 
   return (
-    <div className={`flex items-center justify-center gap-3 p-3 rounded-lg ${
-      isExpired 
-        ? 'bg-gradient-to-r from-red-50 to-red-100 border border-red-200' 
-        : 'bg-gradient-to-r from-blue-50 to-cyan-50 border border-blue-200'
-    }`}>
+    <div className="flex items-center justify-center gap-2 text-sm">
       {isExpired ? (
-        <AlertTriangle className="h-4 w-4 text-red-600" />
+        <>
+          <AlertTriangle className="h-4 w-4 text-red-500" />
+          <span className="text-red-500 font-medium">Tempo para palpites encerrado</span>
+        </>
       ) : (
-        <Clock className="h-4 w-4 text-blue-600" />
+        <>
+          <Clock className="h-4 w-4 text-blue-500" />
+          <span className="text-blue-500 font-medium">Tempo restante: {timeLeft}</span>
+        </>
       )}
-      <span className={`font-semibold text-sm ${
-        isExpired ? 'text-red-700' : 'text-blue-700'
-      }`}>
-        {isExpired ? "Palpites encerrados" : `Palpites até: ${timeLeft}`}
-      </span>
     </div>
   );
 };
