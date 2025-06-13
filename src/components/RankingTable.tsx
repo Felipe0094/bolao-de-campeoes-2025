@@ -65,7 +65,7 @@ const RankingTable = ({ players }: RankingTableProps) => {
               >
                 <div className="flex items-center gap-3 min-w-0 flex-1">
                   <div className="flex-shrink-0 flex items-center gap-2">
-                    <div className="flex items-center justify-center w-7 h-7 rounded-full bg-gradient-to-br from-blue-500 to-cyan-500 text-white font-bold text-sm">
+                    <div className="text-xl font-bold text-gray-900">
                       {player.position}
                     </div>
                     <Avatar className="h-8 w-8">
