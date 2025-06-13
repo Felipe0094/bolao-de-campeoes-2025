@@ -143,8 +143,13 @@ const Dashboard = () => {
             <CardContent>
               {nextDayMatches.length > 0 ? (
                 <div className="space-y-4">
-                  <div className="text-sm font-medium text-blue-600">
-                    {formatDate(firstMatchDay)}
+                  <div className="flex items-center justify-between">
+                    <div className="text-sm font-medium text-blue-600">
+                      {formatDate(firstMatchDay)}
+                    </div>
+                    <div className="text-sm font-medium text-green-600">
+                      {nextDayMatches[0].match_time}
+                    </div>
                   </div>
                   {nextDayMatches.map(match => (
                     <div key={match.id} className="flex items-center justify-center gap-3">
@@ -165,7 +170,6 @@ const Dashboard = () => {
                         />
                         <span className="text-xs text-center font-medium">{match.away_team.name}</span>
                       </div>
-                      <span className="text-xs text-gray-500 ml-2">{match.match_time}</span>
                     </div>
                   ))}
                 </div>
