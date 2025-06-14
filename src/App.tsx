@@ -40,6 +40,18 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   return <>{children}</>;
 };
 
+// Componente para redirecionar da raiz
+function RootRedirect() {
+  const { user, loading } = useAuth();
+  if (loading) {
+    return <div>Carregando…</div>;
+  }
+  if (user) {
+    return <Navigate to="/dashboard" replace />;
+  }
+  return <Index />;
+}
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
@@ -48,18 +60,7 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <Routes>
-            <Route path="/" element={
-              (() => {
-                const { user, loading } = useAuth();
-                if (loading) {
-                  return <div>Carregando…</div>;
-                }
-                if (user) {
-                  return <Navigate to="/dashboard" replace />;
-                }
-                return <Index />;
-              })()
-            } />
+            <Route path="/" element={<RootRedirect />} />
             <Route path="/rules" element={<Rules />} />
             <Route path="/auth/:type" element={<Auth />} />
             
