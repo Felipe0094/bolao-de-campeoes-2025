@@ -238,11 +238,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      exec_sql: {
+      calculate_prediction_points: {
         Args: {
-          sql: string
+          p_home_score: number
+          p_away_score: number
+          p_predicted_home_score: number
+          p_predicted_away_score: number
         }
-        Returns: void
+        Returns: number
       }
     }
     Enums: {

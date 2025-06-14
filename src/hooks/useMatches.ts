@@ -1,4 +1,5 @@
-import { useQuery } from '@tanstack/react-query';
+
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
 export interface Match {
@@ -24,7 +25,9 @@ export interface Match {
 }
 
 export const useMatches = () => {
-  return useQuery({
+  const queryClient = useQueryClient();
+
+  const query = useQuery({
     queryKey: ['matches'],
     queryFn: async () => {
       console.log('Fetching matches from Supabase...');
@@ -69,4 +72,13 @@ export const useMatches = () => {
     refetchOnMount: true,
     refetchOnReconnect: true,
   });
+
+  const refetchMatches = () => {
+    queryClient.invalidateQueries({ queryKey: ['matches'] });
+  };
+
+  return {
+    ...query,
+    refetchMatches
+  };
 };
