@@ -48,7 +48,18 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <Routes>
-            <Route path="/" element={<Index />} />
+            <Route path="/" element={
+              (() => {
+                const { user, loading } = useAuth();
+                if (loading) {
+                  return <div>Carregando…</div>;
+                }
+                if (user) {
+                  return <Navigate to="/dashboard" replace />;
+                }
+                return <Index />;
+              })()
+            } />
             <Route path="/rules" element={<Rules />} />
             <Route path="/auth/:type" element={<Auth />} />
             
