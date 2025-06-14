@@ -1,119 +1,94 @@
 
-const CACHE_NAME = 'bolao-cache-v3';
-
-// Lista de recursos essenciais para cachear
-const urlsToCache = [
+const CACHE_NAME = 'bolao-pwa-v1';
+const STATIC_CACHE_URLS = [
   '/',
   '/index.html',
-  '/manifest.json',
-  '/favicon.ico'
+  '/manifest.json'
 ];
 
-// Instalação do Service Worker
+// Instalação
 self.addEventListener('install', (event) => {
   console.log('Service Worker installing...');
   event.waitUntil(
     caches.open(CACHE_NAME)
-      .then((cache) => {
-        console.log('Caching essential files...');
-        return cache.addAll(urlsToCache);
+      .then(cache => {
+        console.log('Caching static files');
+        return cache.addAll(STATIC_CACHE_URLS);
       })
-      .catch((error) => {
-        console.error('Cache failed:', error);
+      .catch(error => {
+        console.error('Cache failed during install:', error);
       })
   );
-  // Força a ativação imediata
   self.skipWaiting();
 });
 
-// Ativação do Service Worker
+// Ativação
 self.addEventListener('activate', (event) => {
   console.log('Service Worker activating...');
   event.waitUntil(
-    Promise.all([
-      // Limpa caches antigos
-      caches.keys().then((cacheNames) => {
-        return Promise.all(
-          cacheNames.map((cacheName) => {
-            if (cacheName !== CACHE_NAME) {
-              console.log('Deleting old cache:', cacheName);
-              return caches.delete(cacheName);
-            }
-          })
-        );
-      }),
-      // Toma controle imediato
-      self.clients.claim()
-    ])
+    caches.keys().then(cacheNames => {
+      return Promise.all(
+        cacheNames.map(cacheName => {
+          if (cacheName !== CACHE_NAME) {
+            console.log('Deleting old cache:', cacheName);
+            return caches.delete(cacheName);
+          }
+        })
+      );
+    }).then(() => {
+      return self.clients.claim();
+    })
   );
 });
 
-// Estratégia de fetch
+// Fetch - estratégia Network First para arquivos da aplicação
 self.addEventListener('fetch', (event) => {
   // Ignora requisições não-HTTP
   if (!event.request.url.startsWith('http')) {
     return;
   }
 
-  // Ignora APIs externas
-  if (event.request.url.includes('supabase.co') || 
-      event.request.url.includes('/api/')) {
+  // Ignora APIs do Supabase
+  if (event.request.url.includes('supabase.co')) {
     return;
   }
 
-  // Para navegação, tenta rede primeiro, depois cache
+  // Para navegação (HTML)
   if (event.request.mode === 'navigate') {
     event.respondWith(
       fetch(event.request)
-        .then((response) => {
-          // Se sucesso, clona e cacheia
+        .then(response => {
           if (response && response.status === 200) {
             const responseClone = response.clone();
-            caches.open(CACHE_NAME)
-              .then((cache) => {
-                cache.put(event.request, responseClone);
-              });
+            caches.open(CACHE_NAME).then(cache => {
+              cache.put(event.request, responseClone);
+            });
           }
           return response;
         })
         .catch(() => {
-          // Se falhar, tenta cache, depois index.html
-          return caches.match(event.request)
-            .then((response) => {
-              return response || caches.match('/index.html');
-            });
+          return caches.match('/index.html');
         })
     );
     return;
   }
 
-  // Para outros recursos, tenta cache primeiro
+  // Para outros recursos - Cache First
   event.respondWith(
     caches.match(event.request)
-      .then((response) => {
+      .then(response => {
         if (response) {
           return response;
         }
-        // Se não está no cache, busca na rede
-        return fetch(event.request)
-          .then((response) => {
-            // Se sucesso, cacheia para próxima vez
-            if (response && response.status === 200) {
-              const responseClone = response.clone();
-              caches.open(CACHE_NAME)
-                .then((cache) => {
-                  cache.put(event.request, responseClone);
-                });
-            }
-            return response;
-          });
+        return fetch(event.request).then(response => {
+          if (response && response.status === 200 && response.type === 'basic') {
+            const responseClone = response.clone();
+            caches.open(CACHE_NAME).then(cache => {
+              cache.put(event.request, responseClone);
+            });
+          }
+          return response;
+        });
       })
   );
-});
-
-// Responde a mensagens do cliente
-self.addEventListener('message', (event) => {
-  if (event.data && event.data.type === 'SKIP_WAITING') {
-    self.skipWaiting();
-  }
 });

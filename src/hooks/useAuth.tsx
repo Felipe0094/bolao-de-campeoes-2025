@@ -1,3 +1,4 @@
+
 import { useState, useEffect, createContext, useContext, ReactNode } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -20,80 +21,48 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
-  // Função para recarregar a sessão
-  const refreshSession = async () => {
-    try {
-      const { data: { session: currentSession }, error } = await supabase.auth.getSession();
-      if (error) throw error;
-      
-      if (currentSession) {
-        // Verifica se o token está próximo de expirar (menos de 1 hora)
-        const expiresAt = currentSession.expires_at;
-        if (expiresAt) {
-          const expiresIn = expiresAt * 1000 - Date.now();
-          if (expiresIn < 3600000) { // 1 hora em milissegundos
-            // Tenta renovar o token
-            const { data: { session: refreshedSession }, error: refreshError } = 
-              await supabase.auth.refreshSession();
-            if (refreshError) throw refreshError;
-            setSession(refreshedSession);
-            setUser(refreshedSession?.user ?? null);
-            return;
-          }
-        }
-        setSession(currentSession);
-        setUser(currentSession.user);
-      } else {
-        setSession(null);
-        setUser(null);
-      }
-    } catch (error) {
-      console.error('Error refreshing session:', error);
-      // Em caso de erro, tenta limpar a sessão
-      setSession(null);
-      setUser(null);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
-    // Carrega a sessão inicial
-    refreshSession();
+    let mounted = true;
+
+    // Função para carregar a sessão inicial
+    const loadSession = async () => {
+      try {
+        const { data: { session: currentSession }, error } = await supabase.auth.getSession();
+        
+        if (mounted) {
+          if (error) {
+            console.error('Error loading session:', error);
+          } else {
+            setSession(currentSession);
+            setUser(currentSession?.user ?? null);
+          }
+          setLoading(false);
+        }
+      } catch (error) {
+        console.error('Failed to load session:', error);
+        if (mounted) {
+          setLoading(false);
+        }
+      }
+    };
+
+    // Carregar sessão inicial
+    loadSession();
 
     // Listener para mudanças de autenticação
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log('Auth state changed:', event, session?.user?.email);
+      console.log('Auth state changed:', event);
       
-      if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+      if (mounted) {
         setSession(session);
         setUser(session?.user ?? null);
-      } else if (event === 'SIGNED_OUT') {
-        setSession(null);
-        setUser(null);
+        setLoading(false);
       }
-      setLoading(false);
     });
 
-    // Listener para visibilidade da página
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === 'visible') {
-        refreshSession();
-      }
-    };
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-
-    // Listener para foco da janela
-    const handleFocus = () => {
-      refreshSession();
-    };
-    window.addEventListener('focus', handleFocus);
-
-    // Limpa os listeners quando o componente é desmontado
     return () => {
+      mounted = false;
       subscription.unsubscribe();
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-      window.removeEventListener('focus', handleFocus);
     };
   }, []);
 
@@ -103,11 +72,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         email,
         password,
         options: {
-          data: {
-            name,
-          },
+          data: { name },
+          emailRedirectTo: `${window.location.origin}/`
         },
       });
+      
       if (error) throw error;
       
       toast({
@@ -115,6 +84,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         description: "Verifique seu email para confirmar a conta.",
       });
     } catch (error: any) {
+      console.error('SignUp error:', error);
       toast({
         title: "Erro ao criar conta",
         description: error.message,
@@ -130,6 +100,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         email,
         password,
       });
+      
       if (error) throw error;
       
       toast({
@@ -137,6 +108,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         description: "Bem-vindo ao Bolão Mundial de Clubes 2025",
       });
     } catch (error: any) {
+      console.error('SignIn error:', error);
       toast({
         title: "Erro ao fazer login",
         description: error.message,
@@ -156,6 +128,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         description: "Até a próxima!",
       });
     } catch (error: any) {
+      console.error('SignOut error:', error);
       toast({
         title: "Erro ao fazer logout",
         description: error.message,
