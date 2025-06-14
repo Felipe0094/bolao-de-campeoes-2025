@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -23,6 +24,7 @@ const Auth = () => {
   const [password, setPassword] = useState("");
   const [isSignUp, setIsSignUp] = useState(false);
   const [showAlert, setShowAlert] = useState(false);
+  const [authLoading, setAuthLoading] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -34,6 +36,7 @@ const Auth = () => {
   // Se o usuário já estiver autenticado, redireciona para o dashboard
   useEffect(() => {
     if (user && !loading) {
+      console.log('Auth page: User logged in, redirecting to dashboard');
       navigate("/dashboard", { replace: true });
     }
   }, [user, loading, navigate]);
@@ -57,9 +60,14 @@ const Auth = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (authLoading) return; // Evitar múltiplos submits
+    
     try {
+      setAuthLoading(true);
+      
       if (isSignUp) {
-        if (!name) {
+        if (!name.trim()) {
           throw new Error("Nome é obrigatório");
         }
         await signUp(email, password, name);
@@ -70,6 +78,8 @@ const Auth = () => {
       }
     } catch (error) {
       console.error("Erro na autenticação:", error);
+    } finally {
+      setAuthLoading(false);
     }
   };
 
@@ -94,6 +104,7 @@ const Auth = () => {
                       onChange={(e) => setName(e.target.value)}
                       placeholder="Seu nome"
                       required
+                      disabled={authLoading}
                     />
                   </div>
                 )}
@@ -107,6 +118,7 @@ const Auth = () => {
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="seu@email.com"
                     required
+                    disabled={authLoading}
                   />
                 </div>
 
@@ -119,11 +131,12 @@ const Auth = () => {
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="Sua senha"
                     required
+                    disabled={authLoading}
                   />
                 </div>
 
-                <Button type="submit" className="w-full" disabled={loading}>
-                  {loading ? "Carregando..." : isSignUp ? "Criar Conta" : "Entrar"}
+                <Button type="submit" className="w-full" disabled={authLoading}>
+                  {authLoading ? "Carregando..." : isSignUp ? "Criar Conta" : "Entrar"}
                 </Button>
 
                 <div className="text-center text-sm text-gray-600">
@@ -182,4 +195,4 @@ const Auth = () => {
   );
 };
 
-export default Auth; 
+export default Auth;

@@ -1,11 +1,14 @@
+
 import { Button } from "@/components/ui/button";
-import { Link, Navigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { Trophy, Users, Info } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import { useAuth } from "@/hooks/useAuth";
 
 const Index = () => {
   const { user, loading } = useAuth();
+
+  console.log('Index page:', { user: user?.email, loading });
 
   // Se estiver carregando, mostra um loading
   if (loading) {
@@ -17,11 +20,6 @@ const Index = () => {
         </div>
       </div>
     );
-  }
-
-  // Se o usuário estiver autenticado, redireciona para o dashboard
-  if (user) {
-    return <Navigate to="/dashboard" replace />;
   }
 
   return (

@@ -23,51 +23,68 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     let mounted = true;
+    let sessionCheckTimeout: NodeJS.Timeout;
 
-    // Função para carregar a sessão inicial
-    const loadSession = async () => {
+    console.log('AuthProvider: Initializing auth state');
+
+    // Função para processar mudanças de autenticação
+    const handleAuthChange = (event: string, currentSession: Session | null) => {
+      console.log('Auth state changed:', event, currentSession?.user?.email || 'no user');
+      
+      if (mounted) {
+        setSession(currentSession);
+        setUser(currentSession?.user ?? null);
+        setLoading(false);
+      }
+    };
+
+    // Configurar listener primeiro
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(handleAuthChange);
+
+    // Verificar sessão inicial com timeout
+    const checkInitialSession = async () => {
       try {
-        const { data: { session: currentSession }, error } = await supabase.auth.getSession();
+        console.log('AuthProvider: Checking initial session');
+        const { data: { session: initialSession }, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          console.error('Error getting initial session:', error);
+        }
         
         if (mounted) {
-          if (error) {
-            console.error('Error loading session:', error);
-          } else {
-            setSession(currentSession);
-            setUser(currentSession?.user ?? null);
-          }
+          console.log('AuthProvider: Initial session check complete', initialSession?.user?.email || 'no user');
+          setSession(initialSession);
+          setUser(initialSession?.user ?? null);
           setLoading(false);
         }
       } catch (error) {
-        console.error('Failed to load session:', error);
+        console.error('Failed to check initial session:', error);
         if (mounted) {
           setLoading(false);
         }
       }
     };
 
-    // Carregar sessão inicial
-    loadSession();
-
-    // Listener para mudanças de autenticação
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log('Auth state changed:', event);
-      
-      if (mounted) {
-        setSession(session);
-        setUser(session?.user ?? null);
+    // Timeout de segurança para evitar loading infinito
+    sessionCheckTimeout = setTimeout(() => {
+      if (mounted && loading) {
+        console.log('AuthProvider: Session check timeout, setting loading to false');
         setLoading(false);
       }
-    });
+    }, 3000);
+
+    checkInitialSession();
 
     return () => {
       mounted = false;
+      clearTimeout(sessionCheckTimeout);
       subscription.unsubscribe();
     };
   }, []);
 
   const signUp = async (email: string, password: string, name: string) => {
     try {
+      setLoading(true);
       const { error } = await supabase.auth.signUp({
         email,
         password,
@@ -91,11 +108,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         variant: "destructive",
       });
       throw error;
+    } finally {
+      setLoading(false);
     }
   };
 
   const signIn = async (email: string, password: string) => {
     try {
+      setLoading(true);
       const { error } = await supabase.auth.signInWithPassword({
         email,
         password,
@@ -115,11 +135,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         variant: "destructive",
       });
       throw error;
+    } finally {
+      setLoading(false);
     }
   };
 
   const signOut = async () => {
     try {
+      setLoading(true);
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
       
@@ -134,6 +157,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         description: error.message,
         variant: "destructive",
       });
+    } finally {
+      setLoading(false);
     }
   };
 
