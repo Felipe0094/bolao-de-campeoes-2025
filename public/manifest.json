@@ -1,28 +1,32 @@
+
 {
   "name": "Bolão de Campeões 2025",
   "short_name": "Bolão 2025",
   "description": "Bolão de Campeões 2025 - Acompanhe os jogos e faça suas apostas",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
+  "orientation": "portrait-primary",
   "background_color": "#ffffff",
   "theme_color": "#000000",
   "icons": [
     {
       "src": "/bolao-feph.jpg",
-      "sizes": "16x16 32x32",
-      "type": "image/jpeg"
-    },
-    {
-      "src": "/bolao-feph.jpg",
       "sizes": "192x192",
       "type": "image/jpeg",
-      "purpose": "any maskable"
+      "purpose": "any"
     },
     {
       "src": "/bolao-feph.jpg",
       "sizes": "512x512",
       "type": "image/jpeg",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "/bolao-feph.jpg",
+      "sizes": "192x192",
+      "type": "image/jpeg",
+      "purpose": "maskable"
     }
   ]
-} 
+}
