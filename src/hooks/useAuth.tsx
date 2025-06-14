@@ -1,4 +1,3 @@
-
 import { useState, useEffect, createContext, useContext, ReactNode } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -21,22 +20,81 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
+  // Função para recarregar a sessão
+  const refreshSession = async () => {
+    try {
+      const { data: { session: currentSession }, error } = await supabase.auth.getSession();
+      if (error) throw error;
+      
+      if (currentSession) {
+        // Verifica se o token está próximo de expirar (menos de 1 hora)
+        const expiresAt = currentSession.expires_at;
+        if (expiresAt) {
+          const expiresIn = expiresAt * 1000 - Date.now();
+          if (expiresIn < 3600000) { // 1 hora em milissegundos
+            // Tenta renovar o token
+            const { data: { session: refreshedSession }, error: refreshError } = 
+              await supabase.auth.refreshSession();
+            if (refreshError) throw refreshError;
+            setSession(refreshedSession);
+            setUser(refreshedSession?.user ?? null);
+            return;
+          }
+        }
+        setSession(currentSession);
+        setUser(currentSession.user);
+      } else {
+        setSession(null);
+        setUser(null);
+      }
+    } catch (error) {
+      console.error('Error refreshing session:', error);
+      // Em caso de erro, tenta limpar a sessão
+      setSession(null);
+      setUser(null);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
+    // Carrega a sessão inicial
+    refreshSession();
+
+    // Listener para mudanças de autenticação
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log('Auth state changed:', event, session?.user?.email);
+      
+      if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+        setSession(session);
+        setUser(session?.user ?? null);
+      } else if (event === 'SIGNED_OUT') {
+        setSession(null);
+        setUser(null);
+      }
       setLoading(false);
     });
 
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      setLoading(false);
-    });
+    // Listener para visibilidade da página
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        refreshSession();
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
 
-    return () => subscription.unsubscribe();
+    // Listener para foco da janela
+    const handleFocus = () => {
+      refreshSession();
+    };
+    window.addEventListener('focus', handleFocus);
+
+    // Limpa os listeners quando o componente é desmontado
+    return () => {
+      subscription.unsubscribe();
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('focus', handleFocus);
+    };
   }, []);
 
   const signUp = async (email: string, password: string, name: string) => {

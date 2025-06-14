@@ -17,7 +17,7 @@ import {
 } from "@/components/ui/alert-dialog";
 
 const Auth = () => {
-  const { signIn, signUp, loading } = useAuth();
+  const { signIn, signUp, loading, user } = useAuth();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -30,6 +30,30 @@ const Auth = () => {
     // Define o modo baseado na rota atual
     setIsSignUp(location.pathname === "/auth/signup");
   }, [location.pathname]);
+
+  // Se o usuário já estiver autenticado, redireciona para o dashboard
+  useEffect(() => {
+    if (user && !loading) {
+      navigate("/dashboard", { replace: true });
+    }
+  }, [user, loading, navigate]);
+
+  // Se estiver carregando, mostra um loading
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-yellow-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
+          <p className="text-gray-600">Carregando...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Se o usuário estiver autenticado, não renderiza nada (será redirecionado pelo useEffect)
+  if (user) {
+    return null;
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

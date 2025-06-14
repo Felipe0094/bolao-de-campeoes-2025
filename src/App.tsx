@@ -13,7 +13,17 @@ import Auth from "./pages/Auth";
 import Dashboard from "./components/Dashboard";
 import { Admin } from "@/pages/Admin";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 1000 * 60 * 5, // 5 minutos
+      gcTime: 1000 * 60 * 30, // 30 minutos
+      refetchOnWindowFocus: true,
+      refetchOnMount: true,
+      refetchOnReconnect: true,
+    },
+  },
+});
 
 // Componente para proteger rotas que requerem autenticação
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {

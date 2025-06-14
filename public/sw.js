@@ -1,11 +1,15 @@
-const CACHE_NAME = 'bolao-cache-v1';
+const CACHE_NAME = 'bolao-cache-v2';
 
 // Lista de recursos para cachear
 const urlsToCache = [
   '/',
   '/index.html',
   '/manifest.json',
-  '/favicon.ico'
+  '/favicon.ico',
+  '/dashboard',
+  '/matches',
+  '/profile',
+  '/rules'
 ];
 
 // Instalação do Service Worker
@@ -16,24 +20,31 @@ self.addEventListener('install', (event) => {
         return cache.addAll(urlsToCache);
       })
   );
+  // Força a ativação imediata do novo Service Worker
+  self.skipWaiting();
 });
 
-// Limpeza de caches antigos
+// Ativação do Service Worker
 self.addEventListener('activate', (event) => {
   event.waitUntil(
-    caches.keys().then((cacheNames) => {
-      return Promise.all(
-        cacheNames.map((cacheName) => {
-          if (cacheName !== CACHE_NAME) {
-            return caches.delete(cacheName);
-          }
-        })
-      );
-    })
+    Promise.all([
+      // Limpa caches antigos
+      caches.keys().then((cacheNames) => {
+        return Promise.all(
+          cacheNames.map((cacheName) => {
+            if (cacheName !== CACHE_NAME) {
+              return caches.delete(cacheName);
+            }
+          })
+        );
+      }),
+      // Toma controle imediato de todas as páginas
+      self.clients.claim()
+    ])
   );
 });
 
-// Estratégia de cache: Network First, fallback to cache
+// Estratégia de cache: Network First para navegação, Cache First para recursos
 self.addEventListener('fetch', (event) => {
   // Ignorar requisições para o Supabase e outras APIs
   if (event.request.url.includes('supabase.co') || 
@@ -42,11 +53,12 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Para requisições de navegação (HTML), usar Network First
+  // Para requisições de navegação (HTML), usar Network First com fallback para cache
   if (event.request.mode === 'navigate') {
     event.respondWith(
       fetch(event.request)
         .then((response) => {
+          // Se a resposta for bem-sucedida, atualiza o cache
           if (response.status === 200) {
             const responseClone = response.clone();
             caches.open(CACHE_NAME)
@@ -57,11 +69,13 @@ self.addEventListener('fetch', (event) => {
           return response;
         })
         .catch(() => {
+          // Se a rede falhar, tenta usar o cache
           return caches.match(event.request)
             .then((response) => {
               if (response) {
                 return response;
               }
+              // Se não encontrar no cache, retorna a página inicial
               return caches.match('/');
             });
         })
@@ -69,15 +83,18 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Para outros recursos, usar Cache First
+  // Para outros recursos (JS, CSS, imagens), usar Cache First
   event.respondWith(
     caches.match(event.request)
       .then((response) => {
         if (response) {
+          // Se encontrou no cache, retorna imediatamente
           return response;
         }
+        // Se não encontrou no cache, busca na rede
         return fetch(event.request)
           .then((response) => {
+            // Se a resposta for bem-sucedida, atualiza o cache
             if (response.status === 200) {
               const responseClone = response.clone();
               caches.open(CACHE_NAME)
@@ -112,5 +129,12 @@ self.addEventListener('periodicsync', (event) => {
           );
         })
     );
+  }
+});
+
+// Intercepta mensagens do cliente
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
   }
 }); 
