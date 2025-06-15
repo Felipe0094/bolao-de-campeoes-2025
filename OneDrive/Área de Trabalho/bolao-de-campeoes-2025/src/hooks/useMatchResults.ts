@@ -2,14 +2,75 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { calculatePoints } from '@/utils/matchUtils';
 import { useToast } from '@/hooks/use-toast';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import { Match } from '@/types/match';
 
 // Importa o canal compartilhado
 import { matchesChannel } from './useMatches';
 
-export const useMatchResults = () => {
+export function useMatchResults() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const [matches, setMatches] = useState<Match[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchMatches = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('matches')
+          .select(`
+            *,
+            home_team:home_team_id(name),
+            away_team:away_team_id(name)
+          `)
+          .order('match_date', { ascending: true });
+
+        if (error) throw error;
+
+        setMatches(data || []);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'An error occurred');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchMatches();
+
+    // Subscribe to changes
+    const channel = supabase
+      .channel('matches_changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'matches'
+        },
+        (payload) => {
+          if (payload.eventType === 'INSERT') {
+            setMatches(prev => [...prev, payload.new as Match]);
+          } else if (payload.eventType === 'UPDATE') {
+            setMatches(prev => 
+              prev.map(match => 
+                match.id === payload.new.id ? payload.new as Match : match
+              )
+            );
+          } else if (payload.eventType === 'DELETE') {
+            setMatches(prev => 
+              prev.filter(match => match.id !== payload.old.id)
+            );
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
 
   // Busca jogos finalizados sem pontos calculados
   const { data: matchesToProcess } = useQuery({
@@ -137,8 +198,11 @@ export const useMatchResults = () => {
   }, []);
 
   return {
+    matches,
+    loading,
+    error,
     matchesToProcess,
     updatePredictionPoints,
     processPendingMatches,
   };
-}; 
+} 
