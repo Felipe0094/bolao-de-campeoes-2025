@@ -4,7 +4,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Trophy, Users, Calendar, Eye, User } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useMatches } from "@/hooks/useMatches";
-import { useMatchResults } from "@/hooks/useMatchResults";
+import { useMatchResults } from "@/hooks/useMatchResults.tsx";
 import { useRanking } from "@/hooks/useRanking";
 import { useProfile } from "@/hooks/useProfile";
 import MatchCard from "./MatchCard";

@@ -7,21 +7,12 @@ interface MatchResultProps {
 }
 
 const MatchResult = ({ match, userPrediction }: MatchResultProps) => {
-  const hasUserPrediction = userPrediction !== undefined;
-
   return (
     <div className="mb-4 p-4 bg-gray-100 rounded-lg">
       <div className="text-center">
-        {hasUserPrediction && (
-          <div className="space-y-2">
-            <div className="text-sm">
-              Seu palpite: {userPrediction.home_score} x {userPrediction.away_score}
-            </div>
-            <div className="text-sm font-medium text-red-600">
-              Palpite incorreto
-            </div>
-          </div>
-        )}
+        <div className="text-sm font-bold">
+          Resultado: {match.home_score} x {match.away_score}
+        </div>
       </div>
     </div>
   );
