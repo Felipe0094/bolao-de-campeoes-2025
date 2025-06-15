@@ -18,6 +18,9 @@ export default defineConfig(({ mode }) => ({
     alias: {
       "@": path.resolve(__dirname, "./src"),
     },
-    extensions: ['.mjs', '.js', '.ts', '.jsx', '.tsx', '.json']
+    extensions: ['.mjs', '.js', '.ts', '.jsx', '.tsx', '.json', '']
+  },
+  css: {
+    postcss: './postcss.config.js',
   },
 }));
