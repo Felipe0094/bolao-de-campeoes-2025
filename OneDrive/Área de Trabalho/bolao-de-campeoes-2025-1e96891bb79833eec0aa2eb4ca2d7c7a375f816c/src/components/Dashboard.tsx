@@ -4,6 +4,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Trophy, Users, Calendar, Eye, User } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useMatches } from "@/hooks/useMatches";
+import { useMatchResults } from "@/hooks/useMatchResults";
 import { useRanking } from "@/hooks/useRanking";
 import { useProfile } from "@/hooks/useProfile";
 import MatchCard from "./MatchCard";
@@ -18,6 +19,7 @@ const Dashboard = () => {
   const { user, signOut } = useAuth();
   const { profile } = useProfile();
   const { data: matches, isLoading: matchesLoading } = useMatches();
+  const { data: matchResults, isLoading: resultsLoading } = useMatchResults();
   const { data: ranking, isLoading: rankingLoading } = useRanking();
 
   const upcomingMatches = matches?.filter(match => match.status === 'upcoming') || [];
